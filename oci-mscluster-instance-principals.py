@@ -18,7 +18,7 @@ history_nodes_sql = []
 
 
 def error_log(message):
-    error_log = open(os.path.dirname(os.path.realpath(sys.argv[0])) + '\error.log', 'a+b')
+    error_log = open(os.path.dirname(os.path.realpath(sys.argv[0])) + '\error.log', 'a')
     error_log.write(str(datetime.now().strftime('%Y-%B-%d %H:%M:%S')) + ' ---> ' + message + '\n')
     error_log.close()
 
@@ -28,7 +28,7 @@ def no_variable():
     list = ['node1_name', 'node2_name', 'private_ip_id_default_cluster', 'vnic_1', 'vnic_2']
     for i in list:
         if not str(settings[i]):
-            print '!!! EMPTY ' + i + ' !!!'
+            print('!!! EMPTY ' + i + ' !!!')
             error_log('!!! EMPTY ' + i + ' !!!')
             status_list.append('nok')
         else:
@@ -45,7 +45,7 @@ try:
     settings = json.load(file)
     file.close()
 except IOError:
-    print '\n!!! No settings.json file !!!'
+    print('\n!!! No settings.json file !!!')
     error_log('No settings.json file')
     time.sleep(2)
     sys.exit()
@@ -64,7 +64,7 @@ private_ip_id_default_cluster = str(settings['private_ip_id_default_cluster'])
 private_ip_id_sql_cluster = str(settings['private_ip_id_sql_cluster'])
 
 if sql_cluster_name and not private_ip_id_sql_cluster:
-    print '!!! EMPTY private_ip_id_sql_cluster !!!'
+    print('!!! EMPTY private_ip_id_sql_cluster !!!')
     error_log('!!! EMPTY private_ip_id_sql_cluster !!!')
     time.sleep(2)
     sys.exit()
@@ -80,14 +80,14 @@ def assign_to_different_vnic(private_ip_id, vnic_id):
 
 
 def first_contact():
-    cluster_group = subprocess.Popen(['C:\Windows\\sysnative\WindowsPowerShell\\v1.0\\powershell.exe','Get-ClusterGroup'], shell=True, stdout=subprocess.PIPE)
+    cluster_group = subprocess.Popen(['C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe','Get-ClusterGroup'], shell=True, stdout=subprocess.PIPE)
     cluster_group_read = cluster_group.communicate()[0].decode('utf-8')
     for var1 in cluster_group_read.splitlines():
         if var1.startswith(default_cluster_name):
             var2 = str(var1.split()[int(len(default_cluster_name.split(" ")))])
             if var2 == node1_name or var2 == node2_name or var2 == skip_dr_node_name:
                 history_nodes.append(var2)
-                print 'New MASTER DEFAULT NODE detected --> ' + var2
+                print('New MASTER DEFAULT NODE detected --> ' + var2)
                 error_log('New MASTER DEFAULT NODE detected --> ' + var2)
                 if var2 == node1_name:
                     assign_to_different_vnic(private_ip_id_default_cluster, vnic_1)
@@ -96,7 +96,7 @@ def first_contact():
                 elif var2 == skip_dr_node_name:
                     pass
             else:
-                print 'Invalid NODE'
+                print('Invalid NODE')
                 error_log('Invalid NODE --> ' + var2)
                 time.sleep(2)
                 sys.exit()
@@ -108,7 +108,7 @@ def first_contact():
                 var2 = str(var1.split()[int(len(sql_cluster_name.split(" ")))])
                 if var2 == node1_name or var2 == node2_name or var2 == skip_dr_node_name:
                     history_nodes_sql.append(var2)
-                    print 'New MASTER SQL NODE detected --> ' + var2
+                    print('New MASTER SQL NODE detected --> ' + var2)
                     error_log('New MASTER SQL NODE detected --> ' + var2)
                     if var2 == node1_name:
                         assign_to_different_vnic(private_ip_id_sql_cluster, vnic_1)
@@ -117,7 +117,7 @@ def first_contact():
                     elif var2 == skip_dr_node_name:
                         pass
                 else:
-                    print 'Invalid NODE'
+                    print('Invalid NODE')
                     error_log('Invalid NODE --> ' + var2)
                     time.sleep(2)
                     sys.exit()
@@ -129,16 +129,16 @@ first_contact()
 while True:
     # print(history_nodes)
     # print(history_nodes_sql)
-    cluster_group = subprocess.Popen(['C:\Windows\\sysnative\WindowsPowerShell\\v1.0\\powershell.exe', 'Get-ClusterGroup'], shell=True,stdout=subprocess.PIPE)
+    cluster_group = subprocess.Popen(['C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe', 'Get-ClusterGroup'], shell=True,stdout=subprocess.PIPE)
     cluster_group_read = cluster_group.communicate()[0].decode('utf-8')
     for var1 in cluster_group_read.splitlines():
         if var1.startswith(default_cluster_name):
             var2 = str(var1.split()[int(len(default_cluster_name.split(" ")))])
             if var2 == history_nodes[-1]:
-                print 'Nothing to change on OCI, ' + var2 + ' is the MASTER DEFAULT NODE'
+                print('Nothing to change on OCI, ' + var2 + ' is the MASTER DEFAULT NODE')
             else:
                 if var2 == node1_name or var2 == node2_name or var2 == skip_dr_node_name:
-                    print 'New MASTER DEFAULT NODE detected --> ' + var2
+                    print('New MASTER DEFAULT NODE detected --> ' + var2)
                     error_log('New MASTER DEFAULT NODE detected --> ' + var2)
 
                     if var2 == node1_name:
@@ -152,21 +152,21 @@ while True:
                     if len(history_nodes) > 3:
                         history_nodes = history_nodes[-3:]
                 else:
-                    print 'Invalid NODE'
+                    print('Invalid NODE')
                     error_log('Invalid NODE --> ' + var2)
     if not sql_cluster_name:
         pass
     else:
-        cluster_group = subprocess.Popen(['C:\Windows\\sysnative\WindowsPowerShell\\v1.0\\powershell.exe', 'Get-ClusterGroup'], shell=True,stdout=subprocess.PIPE)
+        cluster_group = subprocess.Popen(['C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe', 'Get-ClusterGroup'], shell=True,stdout=subprocess.PIPE)
         cluster_group_read = cluster_group.communicate()[0].decode('utf-8')
         for var1 in cluster_group_read.splitlines():
             if var1.startswith(sql_cluster_name):
                 var2 = str(var1.split()[int(len(sql_cluster_name.split(" ")))])
                 if var2 == history_nodes_sql[-1]:
-                    print 'Nothing to change on OCI, ' + var2 + ' is the MASTER SQL NODE'
+                    print('Nothing to change on OCI, ' + var2 + ' is the MASTER SQL NODE')
                 else:
                     if var2 == node1_name or var2 == node2_name or var2 == skip_dr_node_name:
-                        print 'New MASTER SQL NODE detected --> ' + var2
+                        print('New MASTER SQL NODE detected --> ' + var2)
                         error_log('New MASTER SQL NODE detected --> ' + var2)
 
                         if var2 == node1_name:
@@ -180,7 +180,7 @@ while True:
                         if len(history_nodes_sql) > 3:
                             history_nodes_sql = history_nodes_sql[-3:]
                     else:
-                        print 'Invalid NODE'
+                        print('Invalid NODE')
                         error_log('Invalid NODE --> ' + var2)
 
     time.sleep(1)
